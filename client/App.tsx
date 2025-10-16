@@ -29,8 +29,8 @@ function HeaderContent() {
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex h-14 items-center justify-between">
         <a href="/" className="font-extrabold tracking-tight text-lg">
-          <span className="text-primary">Crimely</span>
-          <span className="text-muted-foreground"> — Panel</span>
+          <span className="text-primary">Casos Delictivos</span>
+          <span className="text-muted-foreground"> — Municipalidad de Surco</span>
         </a>
         <div className="flex items-center gap-2">
           {!session ? (

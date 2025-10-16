@@ -79,7 +79,7 @@ export default function Index() {
   }, [items, search, status]);
 
   useEffect(() => {
-    document.title = "Crimely – Crime Cases Dashboard";
+    document.title = "Dashboard de casos delictivos";
   }, []);
 
   return (

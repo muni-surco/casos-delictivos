@@ -5,11 +5,12 @@ import { createServer } from "./server";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
+  root: "C:/Users/USER/Documents/GitHub/casos-delictivos",
   server: {
     host: "::",
     port: 8080,
     fs: {
-      allow: ["./client", "./shared", "./node_modules"],
+      allow: ["./client", "./shared", "./node_modules", "C:/Users/USER/Documents/GitHub"],
       deny: [".env", ".env.*", "*.{crt,pem}", "**/.git/**", "server/**"],
     },
   },
