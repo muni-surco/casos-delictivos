@@ -333,7 +333,7 @@ export const uploadMedia = [
       for (const [field, arr] of Object.entries(files)) {
         for (const f of arr) {
           const type = field === "videos" ? "video" : "image";
-          const filename = f.filename;
+          let filename = f.filename;
           const originalname = f.originalname || filename;
           let size = 0;
           try {
@@ -363,8 +363,17 @@ export const uploadMedia = [
               const filePath = path.join(uploadsDir, filename);
               const buffer = fs.readFileSync(filePath);
               const driveRes = await import('../lib/googleDrive').then(m => m.uploadFileToDrive(filename, buffer, f.mimetype, process.env.GOOGLE_DRIVE_FOLDER_ID, process.env.GOOGLE_SERVICE_ACCOUNT as string));
-              // prefer thumbnail for preview if available, otherwise use embeddable link
-              url = driveRes.thumbnailLink || driveRes.embeddable || driveRes.webContentLink || driveRes.webViewLink || `https://drive.google.com/uc?export=view&id=${driveRes.id}`;
+              // Prefer embeddable/public view links to avoid 403s from thumbnail endpoints
+              url = driveRes.embeddable
+                || (driveRes.id ? `https://drive.google.com/uc?export=view&id=${driveRes.id}` : null)
+                || driveRes.webViewLink
+                || driveRes.webContentLink
+                || driveRes.thumbnailLink
+                || `https://drive.google.com/uc?export=view&id=${driveRes.id}`;
+              // Store Drive file id as filename for reliable future transforms
+              if (driveRes.id) {
+                filename = String(driveRes.id);
+              }
               console.info(`Uploaded ${filename} to Google Drive: ${url}`);
               try { fs.unlinkSync(filePath); } catch (e) { console.warn('unlink failed', e); }
             } catch (e) {

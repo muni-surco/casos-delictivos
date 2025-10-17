@@ -8,25 +8,34 @@ import { useState, useEffect } from "react";
 import ConfirmDialog from "@/components/ConfirmDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogClose } from "@/components/ui/dialog";
 
-function toEmbeddableUrl(url?: string) {
-  if (!url) return url;
+function extractDriveId(url?: string): string | null {
+  if (!url) return null;
   try {
     const u = new URL(url);
-    const hostname = u.hostname || '';
-    if (hostname.includes('drive.google.com')) {
-      // /file/d/FILEID/view or /file/d/FILEID
-      const match = u.pathname.match(/\/file\/d\/([^/]+)/);
-      if (match) return `https://drive.google.com/uc?export=view&id=${match[1]}`;
-      // ?id=FILEID
-      const id = u.searchParams.get('id');
-      if (id) return `https://drive.google.com/uc?export=view&id=${id}`;
-      // fallback to original
-      return url;
-    }
-    return url;
-  } catch (e) {
-    return url;
+    if (!u.hostname.includes('drive.google.com')) return null;
+    const match = u.pathname.match(/\/file\/d\/([^/]+)/);
+    if (match) return match[1];
+    const id = u.searchParams.get('id');
+    if (id) return id;
+    const parts = u.pathname.split('/').filter(Boolean);
+    const last = parts[parts.length - 1];
+    if (last && /^[A-Za-z0-9_-]{20,}$/.test(last)) return last;
+    return null;
+  } catch {
+    return null;
   }
+}
+
+function toImagePreviewUrl(url?: string) {
+  const id = extractDriveId(url);
+  if (id) return `https://drive.google.com/thumbnail?id=${id}&sz=w1000`;
+  return url;
+}
+
+function toVideoPreviewUrl(url?: string) {
+  const id = extractDriveId(url);
+  if (id) return `https://drive.google.com/uc?export=download&id=${id}`;
+  return url;
 }
 
 interface Props {
@@ -166,9 +175,9 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
             {data.media.slice(0, 12).map((m, idx) => (
               <div key={m.id} className="relative aspect-video rounded-md overflow-hidden bg-muted">
                 {m.type === "image" ? (
-                  <img onClick={() => openViewerAt(idx)} src={toEmbeddableUrl(m.url)} alt={m.filename} className="w-full h-full object-cover cursor-zoom-in" />
+                  <img onClick={() => openViewerAt(idx)} src={toImagePreviewUrl(m.url)} alt={m.filename} className="w-full h-full object-cover cursor-zoom-in" referrerPolicy="no-referrer" />
                 ) : (
-                  <video onClick={() => openViewerAt(idx)} src={toEmbeddableUrl(m.url)} className="w-full h-full object-cover cursor-zoom-in" />
+                  <video onClick={() => openViewerAt(idx)} src={toVideoPreviewUrl(m.url)} className="w-full h-full object-cover cursor-zoom-in" controls preload="metadata" playsInline referrerPolicy="no-referrer" />
                 )}
                 <div className="absolute top-1 right-1">
                   <button
@@ -196,9 +205,9 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
               </button>
               <div className="max-h-[70vh] max-w-[90%] flex items-center justify-center">
                 {data.media[viewerIndex] && data.media[viewerIndex].type === 'image' ? (
-                  <img src={toEmbeddableUrl(data.media[viewerIndex].url)} alt={data.media[viewerIndex].filename} className="max-h-[70vh] max-w-full object-contain" />
+                  <img src={toImagePreviewUrl(data.media[viewerIndex].url)} alt={data.media[viewerIndex].filename} className="max-h-[70vh] max-w-full object-contain" referrerPolicy="no-referrer" />
                 ) : (
-                  <video src={toEmbeddableUrl(data.media[viewerIndex]?.url)} controls className="max-h-[70vh] max-w-full object-contain" />
+                  <video src={toVideoPreviewUrl(data.media[viewerIndex]?.url)} controls className="max-h-[70vh] max-w-full object-contain" preload="metadata" playsInline referrerPolicy="no-referrer" />
                 )}
               </div>
               <button aria-label="Siguiente" onClick={nextViewer} className="p-2 rounded bg-white/80 hover:bg-white">

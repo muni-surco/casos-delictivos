@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, GeoJSON } from "react-leaflet";
 import type { CrimeCase } from "@shared/api";
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
@@ -29,6 +29,25 @@ export default function CaseMap({ items }: { items: CrimeCase[] }) {
   const center = items.length
     ? ([items[0].latitude, items[0].longitude] as [number, number])
     : SURCO_CENTER;
+
+  // Load GeoJSON overlay
+  const [geojson, setGeojson] = useState<any | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/sectores_cuadrantes.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (!cancelled) setGeojson(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
+
+  // Red marker icon for cases
+  const redDotIcon = L.divIcon({
+    className: 'case-red-marker',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#e11d48;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
 
   // Delay rendering the map container slightly to avoid ResizeObserver race conditions
   const [ready, setReady] = useState(false);
@@ -100,8 +119,11 @@ export default function CaseMap({ items }: { items: CrimeCase[] }) {
           }}
         >
           <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+          {geojson && (
+            <GeoJSON data={geojson as any} style={() => ({ color: '#0ea5e9', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.08 })} />
+          )}
           {items.map((c) => (
-            <Marker key={c.id} position={[c.latitude, c.longitude]}>
+            <Marker key={c.id} position={[c.latitude, c.longitude]} icon={redDotIcon}>
               <Popup>
                 <div className="text-sm">
                   <div className="font-semibold">{c.title} <span className="text-xs text-muted-foreground">#{c.code}</span></div>

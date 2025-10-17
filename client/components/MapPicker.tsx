@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { MapContainer, TileLayer, Marker, Popup, useMapEvents } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Popup, useMapEvents, GeoJSON } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 
@@ -45,6 +45,7 @@ export default function MapPicker({
   const center: [number, number] = initialLat && initialLon ? [initialLat, initialLon] : SURCO_CENTER;
   const [pos, setPos] = useState<[number, number] | null>(initialLat && initialLon ? [initialLat, initialLon] : null);
   const [address, setAddress] = useState<string | null>(null);
+  const [geojson, setGeojson] = useState<any | null>(null);
 
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -78,6 +79,15 @@ export default function MapPicker({
       window.removeEventListener("resize", onWin);
       if (resizeTimeout.current) window.clearTimeout(resizeTimeout.current);
     };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+    fetch('/sectores_cuadrantes.geojson')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data) => { if (!cancelled) setGeojson(data); })
+      .catch(() => {});
+    return () => { cancelled = true; };
   }, []);
 
   const handleChange = async (lat: number, lon: number) => {
@@ -119,6 +129,9 @@ export default function MapPicker({
         }}
       >
         <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="&copy; OpenStreetMap contributors" />
+        {geojson && (
+          <GeoJSON data={geojson as any} style={() => ({ color: '#0ea5e9', weight: 1, fillColor: '#38bdf8', fillOpacity: 0.08 })} />
+        )}
         <LocationSelector position={pos} onChange={handleChange} />
         {pos && (
           <Marker position={pos}>
