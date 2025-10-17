@@ -139,7 +139,7 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
   }, [viewerOpen, data.media.length]);
 
   return (
-    <Card className="p-4 flex gap-4">
+    <Card className="p-4">
       <ConfirmDialog
         open={confirmOpen}
         title="Eliminar archivo"
@@ -157,11 +157,12 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
               <Badge className={cn("border", statusColor)}>{statusLabel(data.status)}</Badge>
               <Badge variant="secondary" className="ml-2">{data.crimeType}</Badge>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">{data.place ? `${data.place} — ` : ""}{data.description}</p>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground mt-2">
+            <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{data.place ? `${data.place} — ` : ""}{data.description}</p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
               <div className="inline-flex items-center gap-1"><MapPin className="w-3 h-3" /> {data.latitude.toFixed(4)}, {data.longitude.toFixed(4)}</div>
               <div>{data.date} {data.hour}</div>
-              <div>Cuad: {data.cuadrante ?? "—"} • Sec: {data.sector ?? "—"}</div>
+              <div>Cuadrante: <span className="text-foreground font-medium">{data.cuadrante ?? "—"}</span></div>
+              <div>Sector: <span className="text-foreground font-medium">{data.sector ?? "—"}</span></div>
             </div>
             { (data.suspect || data.victim) && (
               <div className="mt-2 text-sm">
@@ -174,7 +175,7 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
           </div>
           <div className="shrink-0 flex gap-2">
             <UiButton variant="secondary" size="sm" onClick={() => onUpload(data)}>
-              <UploadCloud className="w-4 h-4" /> Adjuntar Evidencias
+              <UploadCloud className="w-4 h-4" /> Adjuntar
             </UiButton>
             <UiButton variant="outline" size="sm" onClick={() => onEdit(data)}>
               <Edit className="w-4 h-4" /> Editar
@@ -194,26 +195,30 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
           </div>
         </div>
         {data.media.length > 0 && (
-          <div className="mt-3 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
+          <div className="mt-3">
+            <div className="text-xs text-muted-foreground mb-1">Evidencias ({data.media.length})</div>
+            <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {data.media.slice(0, 12).map((m, idx) => (
-              <div key={m.id} className="relative aspect-video rounded-md overflow-hidden bg-muted">
+              <div key={m.id} className="group relative aspect-video rounded-md overflow-hidden bg-muted">
                 {m.type === "image" ? (
-                  <img onClick={() => openViewerAt(idx)} src={toImagePreviewUrl(m.url)} alt={m.filename} className="w-full h-full object-cover cursor-zoom-in" referrerPolicy="no-referrer" />
+                  <img onClick={() => openViewerAt(idx)} src={toImagePreviewUrl(m.url)} alt={m.filename} className="w-full h-full object-cover cursor-zoom-in transition-transform group-hover:scale-[1.02]" referrerPolicy="no-referrer" />
                 ) : (
                   <VideoWithFallback src={toVideoPreviewUrl(m.url)} iframeSrc={toDriveIframePreview(m.url)} onClick={() => openViewerAt(idx)} />
                 )}
-                <div className="absolute top-1 right-1">
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors" />
+                <div className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity">
                   <button
                     type="button"
                     onClick={() => openConfirm(m.id)}
-                    className="inline-flex items-center justify-center rounded-full bg-white/80 hover:bg-white p-1 text-rose-600 shadow"
-                    aria-label="Delete media"
+                    className="inline-flex items-center justify-center rounded-full bg-white/90 hover:bg-white p-1 text-rose-600 shadow"
+                    aria-label="Eliminar archivo"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path strokeLinecap="round" strokeLinejoin="round" d="M3 6h18M8 6v12a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V6m-5 0V4a1 1 0 0 0-1-1h-2a1 1 0 0 0-1 1v2"/></svg>
                   </button>
                 </div>
               </div>
             ))}
+            </div>
           </div>
         )}
 
