@@ -29,19 +29,20 @@ function HeaderContent() {
     <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
       <div className="container flex h-14 items-center justify-between">
         <a href="/" className="font-extrabold tracking-tight text-lg">
-          <span className="text-primary">Casos Delictivos</span>
-          <span className="text-muted-foreground"> — Municipalidad de Surco</span>
+          <img src="./logo.jpg"></img>
+          <span className="text-white">Casos Delictivos</span>
+          <span className="text-white"> — Municipalidad de Surco</span>
         </a>
         <div className="flex items-center gap-2">
           {!session ? (
             <>
-              <a href="/login" className="text-sm text-primary underline">Entrar</a>
-              <a href="/register" className="text-sm">Registrarse</a>
+              <a href="/login" className="text-sm text-white underline">Entrar</a>
+              <a href="/register" className="text-sm text-white border">Registrarse</a>
             </>
           ) : (
             <button
               type="button"
-              className="text-sm text-rose-600"
+              className="text-sm text-white"
               onClick={async () => {
                 if (signOut) await signOut();
                 window.location.href = "/login";
