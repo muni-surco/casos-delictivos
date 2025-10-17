@@ -38,6 +38,29 @@ function toVideoPreviewUrl(url?: string) {
   return url;
 }
 
+function toDriveIframePreview(url?: string) {
+  const id = extractDriveId(url);
+  if (id) return `https://drive.google.com/file/d/${id}/preview`;
+  return undefined;
+}
+
+function VideoWithFallback({ src, iframeSrc, onClick, controlsClassName }: { src?: string; iframeSrc?: string; onClick?: () => void; controlsClassName?: string }) {
+  const [failed, setFailed] = useState(false);
+  if (!failed && src) {
+    return (
+      <video onClick={onClick} src={src} className={controlsClassName || "w-full h-full object-cover cursor-zoom-in"} controls preload="metadata" playsInline referrerPolicy="no-referrer" onError={() => setFailed(true)} />
+    );
+  }
+  if (iframeSrc) {
+    return (
+      <iframe src={iframeSrc} className={controlsClassName || "w-full h-full"} allow="autoplay" />
+    );
+  }
+  return (
+    <div className={controlsClassName || "w-full h-full"}>No se pudo cargar el video.</div>
+  );
+}
+
 interface Props {
   data: CrimeCase;
   onEdit: (c: CrimeCase) => void;
@@ -177,7 +200,7 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
                 {m.type === "image" ? (
                   <img onClick={() => openViewerAt(idx)} src={toImagePreviewUrl(m.url)} alt={m.filename} className="w-full h-full object-cover cursor-zoom-in" referrerPolicy="no-referrer" />
                 ) : (
-                  <video onClick={() => openViewerAt(idx)} src={toVideoPreviewUrl(m.url)} className="w-full h-full object-cover cursor-zoom-in" controls preload="metadata" playsInline referrerPolicy="no-referrer" />
+                  <VideoWithFallback src={toVideoPreviewUrl(m.url)} iframeSrc={toDriveIframePreview(m.url)} onClick={() => openViewerAt(idx)} />
                 )}
                 <div className="absolute top-1 right-1">
                   <button
@@ -207,8 +230,9 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload, onMediaDele
                 {data.media[viewerIndex] && data.media[viewerIndex].type === 'image' ? (
                   <img src={toImagePreviewUrl(data.media[viewerIndex].url)} alt={data.media[viewerIndex].filename} className="max-h-[70vh] max-w-full object-contain" referrerPolicy="no-referrer" />
                 ) : (
-                  <video src={toVideoPreviewUrl(data.media[viewerIndex]?.url)} controls className="max-h-[70vh] max-w-full object-contain" preload="metadata" playsInline referrerPolicy="no-referrer" />
+                  <VideoWithFallback src={toVideoPreviewUrl(data.media[viewerIndex]?.url)} iframeSrc={toDriveIframePreview(data.media[viewerIndex]?.url)} controlsClassName="max-h-[70vh] max-w-full object-contain" />
                 )}
+
               </div>
               <button aria-label="Siguiente" onClick={nextViewer} className="p-2 rounded bg-white/80 hover:bg-white">
                 <ChevronRight className="w-6 h-6" />

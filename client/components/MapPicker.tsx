@@ -47,6 +47,14 @@ export default function MapPicker({
   const [address, setAddress] = useState<string | null>(null);
   const [geojson, setGeojson] = useState<any | null>(null);
 
+  // Red marker icon for selection
+  const redDotIcon = L.divIcon({
+    className: 'case-red-marker',
+    html: '<div style="width:14px;height:14px;border-radius:50%;background:#e11d48;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.25)"></div>',
+    iconSize: [14, 14],
+    iconAnchor: [7, 7],
+  });
+
   const mapRef = useRef<L.Map | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const resizeTimeout = useRef<number | null>(null);
@@ -134,7 +142,7 @@ export default function MapPicker({
         )}
         <LocationSelector position={pos} onChange={handleChange} />
         {pos && (
-          <Marker position={pos}>
+          <Marker position={pos} icon={redDotIcon}>
             <Popup>
               <div className="text-sm">
                 <div className="font-semibold">Ubicación seleccionada</div>

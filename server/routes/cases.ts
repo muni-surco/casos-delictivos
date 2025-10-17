@@ -38,6 +38,7 @@ const VIDEO_MIME_TYPES = new Set([
   "video/quicktime", // .mov
   "video/x-msvideo", // .avi
   "video/3gpp",
+  "video/x-matroska", // .mkv
 ]);
 
 const upload = multer({
@@ -45,16 +46,21 @@ const upload = multer({
   fileFilter: (req, file, cb) => {
     const field = file.fieldname;
     const mimetype = (file.mimetype || "").toLowerCase();
+    const ext = (file.originalname || "").split('.').pop()?.toLowerCase();
     const reqAny = req as any;
     reqAny.rejectedUploads = reqAny.rejectedUploads || [];
 
     if (field === "images") {
       if (IMAGE_MIME_TYPES.has(mimetype)) return cb(null, true);
+      // fallback by extension
+      if (ext && ["jpg","jpeg","png","webp","gif","heic","heif"].includes(ext)) return cb(null, true);
       reqAny.rejectedUploads.push({ field, originalname: file.originalname, mimetype, reason: "invalid_mime" });
       return cb(null, false);
     }
     if (field === "videos") {
       if (VIDEO_MIME_TYPES.has(mimetype)) return cb(null, true);
+      // fallback by extension for clients that omit type (e.g., some Windows setups)
+      if (ext && ["mp4","webm","mov","avi","3gp","mkv"].includes(ext)) return cb(null, true);
       reqAny.rejectedUploads.push({ field, originalname: file.originalname, mimetype, reason: "invalid_mime" });
       return cb(null, false);
     }
