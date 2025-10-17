@@ -23,7 +23,60 @@ const storage = multer.diskStorage({
   },
 });
 
-const upload = multer({ storage });
+// Allowed MIME types per field
+const IMAGE_MIME_TYPES = new Set([
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "image/heic",
+  "image/heif",
+]);
+const VIDEO_MIME_TYPES = new Set([
+  "video/mp4",
+  "video/webm",
+  "video/quicktime", // .mov
+  "video/x-msvideo", // .avi
+  "video/3gpp",
+]);
+
+const upload = multer({
+  storage,
+  fileFilter: (req, file, cb) => {
+    const field = file.fieldname;
+    const mimetype = (file.mimetype || "").toLowerCase();
+    const reqAny = req as any;
+    reqAny.rejectedUploads = reqAny.rejectedUploads || [];
+
+    if (field === "images") {
+      if (IMAGE_MIME_TYPES.has(mimetype)) return cb(null, true);
+      reqAny.rejectedUploads.push({ field, originalname: file.originalname, mimetype, reason: "invalid_mime" });
+      return cb(null, false);
+    }
+    if (field === "videos") {
+      if (VIDEO_MIME_TYPES.has(mimetype)) return cb(null, true);
+      reqAny.rejectedUploads.push({ field, originalname: file.originalname, mimetype, reason: "invalid_mime" });
+      return cb(null, false);
+    }
+    // Unexpected field: reject
+    reqAny.rejectedUploads.push({ field, originalname: file.originalname, mimetype, reason: "unexpected_field" });
+    return cb(null, false);
+  },
+});
+
+// Simple short-lived idempotency cache to prevent duplicate uploads on quick refresh
+// Key: `${caseId}:${originalname}:${size}`
+const recentUploadKeys = new Map<string, number>();
+const IDEMPOTENCY_TTL_MS = 2 * 60 * 1000; // 2 minutes
+function makeUploadKey(caseId: string, originalname: string, size: number) {
+  return `${caseId}:${originalname}:${size}`;
+}
+function sweepIdempotencyCache() {
+  const now = Date.now();
+  for (const [k, ts] of recentUploadKeys.entries()) {
+    if (now - ts > IDEMPOTENCY_TTL_MS) recentUploadKeys.delete(k);
+  }
+}
 
 // In-memory DB fallback
 const cases = new Map<string, CrimeCase>();
@@ -265,7 +318,8 @@ export const uploadMedia = [
     const existing = await dbGetCase(id);
     if (!existing) return res.status(404).json({ error: "Not found" });
 
-    const files = req.files as Record<string, Express.Multer.File[]> | undefined;
+    const files = (req as any).files as Record<string, any[]> | undefined;
+    const rejected = (req as any).rejectedUploads || [];
     const added: CaseMedia[] = [];
     if (files) {
       if (useSupabase) {
@@ -280,6 +334,25 @@ export const uploadMedia = [
         for (const f of arr) {
           const type = field === "videos" ? "video" : "image";
           const filename = f.filename;
+          const originalname = f.originalname || filename;
+          let size = 0;
+          try {
+            const filePath = path.join(uploadsDir, filename);
+            size = fs.statSync(filePath).size;
+          } catch {}
+
+          // Idempotency: skip recent duplicates (name+size) for same case
+          sweepIdempotencyCache();
+          const key = makeUploadKey(id, originalname, size);
+          if (recentUploadKeys.has(key)) {
+            try {
+              const filePath = path.join(uploadsDir, filename);
+              if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+            } catch {}
+            rejected.push({ field, originalname, mimetype: f.mimetype, reason: "duplicate_recent" });
+            continue;
+          }
+          recentUploadKeys.set(key, Date.now());
           let url = `/uploads/${filename}`;
           let storageResult: any = null;
           let insertResult: any = null;
@@ -379,14 +452,20 @@ export const uploadMedia = [
       }
     }
 
+    // If there were rejected uploads, include them in response warnings
+    const warnings = (res as any).locals?.uploadWarnings ?? [];
+    if (rejected.length > 0) {
+      warnings.push({ type: "rejected_uploads", items: rejected });
+    }
+
     // update case updatedAt
     if (!useSupabase) {
       existing.updatedAt = nowISO();
       cases.set(id, existing);
-      res.json({ added, case: existing, warnings: (res as any).locals?.uploadWarnings ?? [] });
+      res.json({ added, case: existing, warnings });
     } else {
       const fresh = await dbGetCase(id);
-      res.json({ added, case: fresh, warnings: (res as any).locals?.uploadWarnings ?? [] });
+      res.json({ added, case: fresh, warnings });
     }
   }) as RequestHandler,
 ];

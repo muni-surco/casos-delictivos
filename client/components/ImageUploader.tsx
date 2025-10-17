@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { ImagePlus, Loader2 } from "lucide-react";
 import type { CrimeCase } from "@shared/api";
 import { CasesAPI } from "@/lib/api";
+import { toast } from "@/components/ui/use-toast";
 
 interface Props {
   caseItem: CrimeCase;
@@ -17,10 +18,36 @@ export default function ImageUploader({ caseItem, onUploaded }: Props) {
 
   const onChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files ?? []);
+    const allowed = new Set([
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "image/gif",
+      "image/heic",
+      "image/heif",
+    ]);
+    const valid = files.filter((f) => allowed.has((f.type || "").toLowerCase()));
+    const invalid = files.filter((f) => !allowed.has((f.type || "").toLowerCase()));
+    if (invalid.length) {
+      const names = invalid.map((i) => i.name).join(", ");
+      toast({ title: "Formato no permitido", description: `Estos archivos no son válidos: ${names}` });
+    }
+    if (!valid.length) {
+      if (inputRef.current) inputRef.current.value = "";
+      return;
+    }
     if (!files.length) return;
     setLoading(true);
     try {
-      await CasesAPI.uploadMedia(caseItem.id, { images: files });
+      const res = await CasesAPI.uploadMedia(caseItem.id, { images: valid });
+      const rejected = (res.warnings || []).find((w: any) => w.type === "rejected_uploads");
+      if (rejected && rejected.items?.length) {
+        const names = rejected.items.map((i: any) => i.originalname).join(", ");
+        toast({
+          title: "Formato no permitido",
+          description: `Estos archivos fueron rechazados: ${names}`,
+        });
+      }
       onUploaded?.();
     } finally {
       setLoading(false);

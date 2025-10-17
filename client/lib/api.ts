@@ -82,7 +82,7 @@ export const CasesAPI = {
     const fd = new FormData();
     files.images?.forEach((f) => fd.append('images', f));
     files.videos?.forEach((f) => fd.append('videos', f));
-    return tryFetchPaths<{ added: CaseMedia[]; case: CrimeCase }>(`/api/cases/${id}/media`, {
+    return tryFetchPaths<{ added: CaseMedia[]; case: CrimeCase; warnings?: any[] }>(`/api/cases/${id}/media`, {
       method: 'POST',
       body: fd,
     });

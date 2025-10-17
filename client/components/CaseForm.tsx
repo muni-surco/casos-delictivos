@@ -5,7 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import MapPicker from "@/components/MapPicker";
-import { Calendar } from "lucide-react";
+import { Calendar, Loader2 } from "lucide-react";
 import type { CrimeCase, CreateCaseInput, CaseStatus } from "@shared/api";
 
 interface Props {
@@ -37,6 +37,7 @@ export default function CaseForm({ initial, onSubmit, onCancel }: Props) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading) return; // prevent double submit clicks
     setLoading(true);
     try {
       const payload: any = {
@@ -188,7 +189,15 @@ export default function CaseForm({ initial, onSubmit, onCancel }: Props) {
         {onCancel && (
           <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
         )}
-        <Button type="submit" form="case-form" disabled={loading} className="ml-2">{initial ? "Guardar cambios" : "Crear caso"}</Button>
+        <Button type="submit" form="case-form" disabled={loading} aria-busy={loading} className="ml-2">
+          {loading ? (
+            <>
+              <Loader2 className="animate-spin w-4 h-4 mr-2" /> {initial ? "Guardando..." : "Creando caso..."}
+            </>
+          ) : (
+            initial ? "Guardar cambios" : "Crear caso"
+          )}
+        </Button>
       </div>
     </div>
   );

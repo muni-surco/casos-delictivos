@@ -158,3 +158,12 @@ a.border {
   padding: 8px;
   margin-left:10px
 }
+
+.logo-styles {
+  float: inline-start;
+  margin-right: 20px;
+}
+
+.vertical-align {
+  vertical-align: -webkit-baseline-middle;
+}
