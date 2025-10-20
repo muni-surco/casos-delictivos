@@ -341,7 +341,7 @@ export default function CaseForm({ data, onSubmit, onCancel, onDelete, onUpload,
       </Tabs>
 
       <DialogFooter className="mt-6">
-        <Button variant="ghost" onClick={onCancel}>
+        <Button variant="outline" onClick={onCancel}>
           Cancelar
         </Button>
         <Button type="submit" form="case-form" disabled={loading}>

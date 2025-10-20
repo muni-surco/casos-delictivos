@@ -252,9 +252,11 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
                   <Badge variant="secondary">{data.crimeType}</Badge>
                 </div>
               </div>
-
               <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
-                {data.place ? `${data.place} — ` : ""}{data.description}
+                {data.description}
+              </p>
+              <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
+                {data.place ? `${data.place} ` : ""}
               </p>
             </div>
 
