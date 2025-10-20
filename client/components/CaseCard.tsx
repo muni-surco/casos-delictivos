@@ -249,14 +249,6 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
                 </div>
               </div>
               <div className="text-sm text-muted-foreground mt-2 line-clamp-3">{data.date} {data.hour}</div>
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
-                {data.description}
-              </p>
-              <div className="flex flex-col gap-1 mt-2 text-sm"> 
-              <div><strong>Ubicación:</strong> <span className="ml-1">{data.place ? `${data.place} ` : ""}</span></div>
-              </div>
-              {/* Minimapa debajo de la galería */}
-              <MiniMap lat={data.latitude ?? null} lon={data.longitude ?? null} />
             </div>
 
             {/* Acciones - solo editar y eliminar */}
@@ -279,20 +271,12 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
           </div>
 
           {/* Metadata y detalles */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs text-muted-foreground">
-            <div><strong>Cuadrante:</strong> <span className="ml-1">{data.cuadrante ?? "—"}</span></div>
-            <div><strong>Sector:</strong> <span className="ml-1">{data.sector ?? "—"}</span></div>
-            <div className="flex items-center gap-2">
-              <MapPin className="w-3 h-3" />
-              <span className="font-mono">
-                {data.latitude != null && data.longitude != null 
-                  ? `${Number(data.latitude).toFixed(4)}, ${Number(data.longitude).toFixed(4)}` 
-                  : "—"}
-              </span>
-            </div>
-          </div>
-
-          {/* Información adicional */}
+          <div className="grid grid-cols-2 md:grid-cols-2 gap-x-2 gap-y-2 text-xs text-muted-foreground">
+              <div className="flex flex-col gap-1 mt-2 text-sm"> 
+              <div><strong>Descripción:</strong> <span className="ml-1">{data.description}</span></div>
+              <div><strong>Ubicación:</strong> <span className="ml-1">{data.place ? `${data.place} ` : ""}</span></div>
+              </div>
+            {/* Información adicional */}
           {(data.suspect || data.victim || data.escapeRoute) && (
             <div className="flex flex-col gap-1 mt-2 text-sm">
               {data.suspect && (
@@ -309,6 +293,22 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
               )}
             </div>
           )}
+          
+          <div className="flex flex-col gap-1 mt-2 text-sm">
+            <div><strong>Cuadrante:</strong> <span className="ml-1">{data.cuadrante ?? "—"}</span></div>
+            <div><strong>Sector:</strong> <span className="ml-1">{data.sector ?? "—"}</span></div>
+            <div className="flex items-center gap-2">
+              <MapPin className="w-3 h-3" />
+              <span className="font-mono">
+                {data.latitude != null && data.longitude != null 
+                  ? `${Number(data.latitude).toFixed(4)}, ${Number(data.longitude).toFixed(4)}` 
+                  : "—"}
+              </span>
+            </div>
+          {/* Minimapa debajo de la galería */}
+              <MiniMap lat={data.latitude ?? null} lon={data.longitude ?? null} />
+            </div>
+        </div>
         </div>
       </div>
 
