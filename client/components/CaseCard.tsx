@@ -230,10 +230,6 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
             </div>
           )}
 
-          {/* Minimapa debajo de la galería */}
-          <div className="mt-2">
-            <MiniMap lat={data.latitude ?? null} lon={data.longitude ?? null} />
-          </div>
         </div>
 
         {/* RIGHT: details */}
@@ -252,12 +248,16 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
                   <Badge variant="secondary">{data.crimeType}</Badge>
                 </div>
               </div>
+              <div className="text-sm text-muted-foreground mt-2 line-clamp-3">{data.date} {data.hour}</div>
               <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
                 {data.description}
               </p>
+              <strong className="text-sm mt-2 line-clamp-3">Ubicación</strong>
               <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
                 {data.place ? `${data.place} ` : ""}
               </p>
+              {/* Minimapa debajo de la galería */}
+              <MiniMap lat={data.latitude ?? null} lon={data.longitude ?? null} />
             </div>
 
             {/* Acciones - solo editar y eliminar */}
@@ -281,7 +281,6 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
 
           {/* Metadata y detalles */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs text-muted-foreground">
-            <div>{data.date} {data.hour}</div>
             <div>Cuadrante: <span className="text-foreground font-medium">{data.cuadrante ?? "—"}</span></div>
             <div>Sector: <span className="text-foreground font-medium">{data.sector ?? "—"}</span></div>
             <div className="flex items-center gap-2">
@@ -307,7 +306,7 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
                 <div><strong>Ruta de escape:</strong> <span className="ml-1">{data.escapeRoute}</span></div>
               )}
               {data.suspectDescription && (
-                <div className="text-xs text-muted-foreground mt-1">{data.suspectDescription}</div>
+                <div><strong>Descripción del sospechoso:</strong> <span className="ml-1">{data.suspectDescription}</span></div>
               )}
             </div>
           )}
