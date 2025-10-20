@@ -252,10 +252,9 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
               <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
                 {data.description}
               </p>
-              <strong className="text-sm mt-2 line-clamp-3">Ubicación</strong>
-              <p className="text-sm text-muted-foreground mt-2 line-clamp-3">
-                {data.place ? `${data.place} ` : ""}
-              </p>
+              <div className="flex flex-col gap-1 mt-2 text-sm"> 
+              <div><strong>Ubicación:</strong> <span className="ml-1">{data.place ? `${data.place} ` : ""}</span></div>
+              </div>
               {/* Minimapa debajo de la galería */}
               <MiniMap lat={data.latitude ?? null} lon={data.longitude ?? null} />
             </div>
@@ -281,8 +280,8 @@ export default function CaseCard({ data, onEdit, onDelete, onUpload }: Props) {
 
           {/* Metadata y detalles */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-2 text-xs text-muted-foreground">
-            <div>Cuadrante: <span className="text-foreground font-medium">{data.cuadrante ?? "—"}</span></div>
-            <div>Sector: <span className="text-foreground font-medium">{data.sector ?? "—"}</span></div>
+            <div><strong>Cuadrante:</strong> <span className="ml-1">{data.cuadrante ?? "—"}</span></div>
+            <div><strong>Sector:</strong> <span className="ml-1">{data.sector ?? "—"}</span></div>
             <div className="flex items-center gap-2">
               <MapPin className="w-3 h-3" />
               <span className="font-mono">
