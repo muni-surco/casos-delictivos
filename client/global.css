@@ -167,3 +167,8 @@ a.border {
 .vertical-align {
   vertical-align: -webkit-baseline-middle;
 }
+
+iframe .leaflet-control-attribution,
+.leaflet-control {
+  display: none !important;
+}

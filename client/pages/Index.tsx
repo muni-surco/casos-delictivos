@@ -22,8 +22,8 @@ export default function Index() {
   const [status, setStatus] = useState<string>("all");
   const [openCreate, setOpenCreate] = useState(false);
   const createGuardRef = useRef(0);
-  const [editItem, setEditItem] = useState<CrimeCase | null>(null);
-  const editGuardRef = useRef(0);
+  const [editingCase, setEditingCase] = useState<CrimeCase | undefined>();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [uploadItem, setUploadItem] = useState<CrimeCase | null>(null);
   const uploadGuardRef = useRef(0);
 
@@ -49,7 +49,7 @@ export default function Index() {
     mutationFn: (vars: { id: string; input: Partial<CrimeCase> }) => CasesAPI.update(vars.id, vars.input),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["cases"] });
-      setEditItem(null);
+      setEditingCase(undefined);
     },
   });
 
@@ -81,6 +81,31 @@ export default function Index() {
   useEffect(() => {
     document.title = "Dashboard de casos delictivos";
   }, []);
+
+  // Handler para editar caso
+  const handleEdit = (caso: CrimeCase) => {
+    // Asegurarse de que tenemos todos los datos del caso
+    setEditingCase({...caso}); // Crear una copia limpia
+    setIsEditModalOpen(true);
+  };
+
+  // Handler para cerrar el modal
+  const handleCloseEdit = () => {
+    setIsEditModalOpen(false);
+    setEditingCase(undefined); // Limpiar el caso en edición
+  };
+
+  // Handler para guardar cambios
+  const handleSubmit = async (data: CrimeCase) => {
+    try {
+      // Tu lógica para actualizar el caso
+      await updateMut.mutateAsync({ id: editingCase!.id, input: data });
+      handleCloseEdit();
+      // Recargar la lista de casos si es necesario
+    } catch (error) {
+      console.error('Error al actualizar caso:', error);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -148,7 +173,7 @@ export default function Index() {
             <div key={c.id} className="space-y-2">
               <CaseCard
                 data={c}
-                onEdit={(it) => setEditItem(it)}
+                onEdit={handleEdit}
                 onDelete={(id) => deleteMut.mutate(id)}
                 onUpload={(it) => setUploadItem(it)}
                 onMediaDeleted={async (caseId, mediaId) => {
@@ -167,27 +192,26 @@ export default function Index() {
         </TabsContent>
       </Tabs>
 
-      <Dialog open={!!editItem} onOpenChange={(o) => {
-        const now = Date.now();
-        if (!o) {
-          // closing
-          editGuardRef.current = now;
-          if (!o) setEditItem(null);
-          return;
-        }
-        // opening: prevent if too soon
-        if (now - editGuardRef.current < 1500) return;
-        editGuardRef.current = now;
-      }}>
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
         <DialogContent className="sm:max-w-6xl">
           <DialogHeader>
             <DialogTitle>Editar caso</DialogTitle>
           </DialogHeader>
-          {editItem && (
+          {editingCase && (
             <CaseForm
-              initial={editItem}
-              onSubmit={(d) => updateMut.mutate({ id: editItem.id, input: d })}
-              onCancel={() => setEditItem(null)}
+              key={editingCase?.id} // Importante: forzar recreación del componente
+              data={editingCase}
+              onSubmit={handleSubmit}
+              onCancel={handleCloseEdit}
+              onDelete={(id) => deleteMut.mutate(id)}
+              onUpload={(it) => setUploadItem(it)}
+              onMediaDelete={async (caseId, mediaId) => {
+                try {
+                  await deleteMediaMut.mutateAsync({ caseId, mediaId });
+                } catch (e) {
+                  console.error('delete media failed', e);
+                }
+              }}
             />
           )}
         </DialogContent>

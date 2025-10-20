@@ -27,15 +27,13 @@ function LocationSelector({ position, onChange }: { position: [number, number] |
   return null;
 }
 
-export default function MapPicker({
-  initialLat,
-  initialLon,
-  onSelect,
-}: {
+interface Props {
   initialLat?: number | null;
   initialLon?: number | null;
   onSelect: (lat: number, lon: number, address?: string | null) => void;
-}) {
+}
+
+export default function MapPicker({ initialLat, initialLon, onSelect }: Props) {
   useEffect(() => {
     // @ts-ignore
     L.Marker.prototype.options.icon = DefaultIcon;
