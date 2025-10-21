@@ -29,7 +29,11 @@ export default function VideoUploader({ caseItem, onUploaded }: Props) {
     const invalid = files.filter((f) => !allowed.has((f.type || "").toLowerCase()));
     if (invalid.length) {
       const names = invalid.map((i) => i.name).join(", ");
-      toast({ title: "Formato no permitido", description: `Estos archivos no son válidos: ${names}` });
+      toast({ 
+        title: "Formato no permitido", 
+        description: `Estos archivos no son válidos: ${names}`,
+        variant: "destructive" 
+      });
     }
     if (!valid.length) {
       if (inputRef.current) inputRef.current.value = "";
@@ -45,9 +49,23 @@ export default function VideoUploader({ caseItem, onUploaded }: Props) {
         toast({
           title: "Formato no permitido",
           description: `Estos archivos fueron rechazados: ${names}`,
+          variant: "destructive"
+        });
+      } else {
+        // Mostrar mensaje de éxito
+        const count = valid.length;
+        toast({
+          title: "✓ Videos subidos",
+          description: `${count} ${count === 1 ? 'video ha' : 'videos han'} sido agregado${count === 1 ? '' : 's'} correctamente`,
         });
       }
       onUploaded?.();
+    } catch (error) {
+      toast({
+        title: "Error al subir videos",
+        description: "Ocurrió un error al subir los videos. Por favor, intenta de nuevo.",
+        variant: "destructive"
+      });
     } finally {
       setLoading(false);
       if (inputRef.current) inputRef.current.value = "";

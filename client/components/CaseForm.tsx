@@ -16,6 +16,7 @@ import { crimeTypes } from "@shared/constants";
 
 interface Props {
   data?: CrimeCase;
+  activeTab?: string;
   onSubmit: (data: CrimeCase) => void;
   onCancel: () => void;
   onDelete?: (id: string) => void;

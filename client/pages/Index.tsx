@@ -26,6 +26,7 @@ export default function Index() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [uploadItem, setUploadItem] = useState<CrimeCase | null>(null);
   const uploadGuardRef = useRef(0);
+  const [activeTab, setActiveTab] = useState("details");
 
   const { data, isLoading } = useQuery({
     queryKey: ["cases"],
